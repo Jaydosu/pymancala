@@ -256,6 +256,12 @@ class game:
         try and maximise the score of the player
         
         if a child has less current score, then the search will be stopped
+        
+        if depth is 0, then the function returns whether the move fits the
+        heuristics
+        
+        if the depth is not 0, then the search continues. pref move will 
+        change and move up the tree until the search is complete
         """
         if state == None:
             p = self.player
@@ -267,18 +273,27 @@ class game:
             p2, pits, p1 = state[1]
 
         # a will always be maximising score and b will be the minimising score
-        if a == None and b == None:
+        if a == None:
             if p == 2:
                 a = p2
-                b = p1
             else: 
                 a = p1
-                b = p2
+        
+        if b == None:
+            b = 50
 
         if depth == 0:
-            if p == self.initplayer:
-                result = self.__move(let, [p*-1+3, [p2, pits, p1]])[1]
-                return [result[0], result[2]]
+            new_p, res = self.__move(let, [p, [p2, pits, p1]])
+            pot_a = res[-2*p+4]
+            pot_b = res[2*p-2]
+            
+            if pot_a >= a:
+                a = pot_a
+                if pot_b <= b:
+                    return let
+                else: return None
+            else: 
+                return None
         
         if depth != 0:
             
@@ -318,12 +333,23 @@ class game:
                     b = min(b, potential b)
                     
             """
+            pref_let = None
             for x in possmove:
-                self.__move(x, [p, [p2, pits, p1]])
-                self.search(depth-1, x, a, b, [p*-1+3, [p2,pits,p1]])
+                new_p, res = self.__move(x, [p, [p2, pits, p1]])
+                pot_a = res[-2*p+4]
+                pot_b = res[2*p-2]
                 
-                
-                
+                print(x, res)
+                print(pot_a, pot_b)
+                print(a, b)
+                print('\n')
+                if pot_a >= a:
+                    a = pot_a
+                    if pot_b <= b:
+                        b = pot_b
+                        
+                        pref_let += self.search(depth-1, x, b, a, [new_p, res])
+        return pref_let      
         '''if depth != 0:
             for x in possmove:
                 bob = self.search(depth-1, x, a, b, [p*-1+3, [p2, pits, p1]])
