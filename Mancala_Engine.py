@@ -51,8 +51,10 @@ class game:
         letters = {"a": 0,"b": 1,"c": 2,"d": 3,"e": 4,"f": 5,
                    "g": 6,"h": 7,"i": 8,"j": 9,"k": 10,"l": 11}
         
-        if letter in letters or letter.lower() in letters:
-            idx = letters[letter.lower()]
+        letter = letter.lower()
+        
+        if letter in letters:
+            idx = letters[letter]
         else:
             print("Input not recognised")
             return None
@@ -131,8 +133,7 @@ class game:
         letters = {"a": 0,"b": 1,"c": 2,"d": 3,"e": 4,"f": 5,
                    "g": 6,"h": 7,"i": 8,"j": 9,"k": 10,"l": 11}
         
-        if let in letters or let.lower() in letters:
-            idx = letters[let.lower()]
+        idx = letters[let]
         
         if player == 1:
             combiboard = pits[0:6] + [board[2]] + pits[6:12]
@@ -265,13 +266,14 @@ class game:
             pp = (state[0] - 1)* 6
             p2, pits, p1 = state[1]
 
-
-        letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
-        possmove = letters[0+pp:6+pp]
-        
-        for x in possmove:
-            if pits[possmove.index(x) + pp] == 0:
-                possmove.pop(possmove.index(x))
+        # a will always be maximising score and b will be the minimising score
+        if a == None and b == None:
+            if p == 2:
+                a = p2
+                b = p1
+            else: 
+                a = p1
+                b = p2
 
         if depth == 0:
             if p == self.initplayer:
@@ -279,9 +281,49 @@ class game:
                 return [result[0], result[2]]
         
         if depth != 0:
+            
+            possmove = ['a','b','c','d','e','f','g','h','i','j','k','l'][0+pp:6+pp]
+            
+            for x in possmove:
+                j = possmove.index(x)
+                if pits[j + pp] == 0:
+                    possmove.pop(j)
+            """
+            
+            THIS SECTION IS WHERE WE IMPLEMENT THE ab SEARCH
+            
+            a = maximising score
+            b = minimising score
+            
+            same goal: maximise your score while minimising opponent score
+            
+            the best move you can make is the one that maximises your score
+            while minimising your opponent score
+            
+            naturally, while playing mancala, you look for moves which allow 
+            you to make more than 1 move
+            
+            if a or b > 24: stop search i.e. auto win
+                if a > 24, no need to search further as line is winning
+                if b > 24, no need to search further as line is losing
+                
+            overall, trying to find max(a) and min(b)
+            
+            order of steps:
+                
+                do move
+                    the results are compared to a and b
+                    
+                    a = max(a, potential a)
+                    b = min(b, potential b)
+                    
+            """
             for x in possmove:
                 self.__move(x, [p, [p2, pits, p1]])
                 self.search(depth-1, x, a, b, [p*-1+3, [p2,pits,p1]])
+                
+                
+                
         '''if depth != 0:
             for x in possmove:
                 bob = self.search(depth-1, x, a, b, [p*-1+3, [p2, pits, p1]])
@@ -312,7 +354,8 @@ class game:
         
     def clear(self):
         self.searchedpos = []
-    
+
+import cProfile  
 if __name__ == "__main__":
        
     mancala = game(1)
@@ -320,9 +363,6 @@ if __name__ == "__main__":
     #mancala.move('C')
     mancala.move('C')
     mancala.move('F')
-    #mancala.move('K')
-    t1 = time.time()
-    mancala.search(7)
-    print(time.time() - t1)
-    
+    mancala.search(1)
+    #cProfile.run('mancala.search(8)')
 
