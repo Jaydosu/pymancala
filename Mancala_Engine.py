@@ -48,13 +48,11 @@ class game:
         print('\n' + 'Player to move: ' + p)
         print('-------------------------------------------------------------')      
     def check_legal(self, letter):
-        letters_up = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
-        letters_lo = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+        letters = {"a": 0,"b": 1,"c": 2,"d": 3,"e": 4,"f": 5,
+                   "g": 6,"h": 7,"i": 8,"j": 9,"k": 10,"l": 11}
         
-        if letter in letters_up:
-            idx = letters_up.index(letter)
-        elif letter in letters_lo:
-            idx = letters_lo.index(letter)
+        if letter in letters or letter.lower() in letters:
+            idx = letters[letter.lower()]
         else:
             print("Input not recognised")
             return None
@@ -130,13 +128,11 @@ class game:
         
         pits = board[1]
         
-        letters_up = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
-        letters_lo = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
+        letters = {"a": 0,"b": 1,"c": 2,"d": 3,"e": 4,"f": 5,
+                   "g": 6,"h": 7,"i": 8,"j": 9,"k": 10,"l": 11}
         
-        if let in letters_up:
-            idx = letters_up.index(let)
-        elif let in letters_lo:
-            idx = letters_lo.index(let)
+        if let in letters or let.lower() in letters:
+            idx = letters[let.lower()]
         
         if player == 1:
             combiboard = pits[0:6] + [board[2]] + pits[6:12]
@@ -273,11 +269,19 @@ class game:
         letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
         possmove = letters[0+pp:6+pp]
         
+        for x in possmove:
+            if pits[possmove.index(x) + pp] == 0:
+                possmove.pop(possmove.index(x))
+
         if depth == 0:
             if p == self.initplayer:
                 result = self.__move(let, [p*-1+3, [p2, pits, p1]])[1]
                 return [result[0], result[2]]
-            
+        
+        if depth != 0:
+            for x in possmove:
+                self.__move(x, [p, [p2, pits, p1]])
+                self.search(depth-1, x, a, b, [p*-1+3, [p2,pits,p1]])
         '''if depth != 0:
             for x in possmove:
                 bob = self.search(depth-1, x, a, b, [p*-1+3, [p2, pits, p1]])
@@ -317,7 +321,8 @@ if __name__ == "__main__":
     mancala.move('C')
     mancala.move('F')
     #mancala.move('K')
-    mancala.search(1)
-
+    t1 = time.time()
+    mancala.search(7)
+    print(time.time() - t1)
     
 
