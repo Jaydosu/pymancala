@@ -283,6 +283,7 @@ class game:
             b = 50
 
         if depth == 0:
+            #if depth = 0, just calculate, a, b and return
             new_p, res = self.__move(let, [p, [p2, pits, p1]])
             pot_a = res[-2*p+4]
             pot_b = res[2*p-2]
@@ -290,13 +291,10 @@ class game:
             if pot_a >= a:
                 a = pot_a
                 if pot_b <= b:
-                    return let
-                else: return None
-            else: 
-                return None
+                    b = pot_b
+            return [a,b]
         
         if depth != 0:
-            
             possmove = ['a','b','c','d','e','f','g','h','i','j','k','l'][0+pp:6+pp]
             
             for x in possmove:
@@ -333,50 +331,41 @@ class game:
                     b = min(b, potential b)
                     
             """
+                        
+            '''for x in possmove:
+                pot_a, pot_b = self.search(depth-1, x, a, b, [p, [p2, pits, p1]])
+                if pot_a >= a:
+                    if pot_b <= b:
+                        a, b = pot_a, pot_b
+                    else:
+                        break
+                else:
+                    break
+            return [a,b]'''
             pref_let = None
             for x in possmove:
-                new_p, res = self.__move(x, [p, [p2, pits, p1]])
-                pot_a = res[-2*p+4]
-                pot_b = res[2*p-2]
-                
-                print(x, res)
-                print(pot_a, pot_b)
-                print(a, b)
-                print('\n')
-                if pot_a >= a:
-                    a = pot_a
-                    if pot_b <= b:
-                        b = pot_b
-                        
-                        pref_let += self.search(depth-1, x, b, a, [new_p, res])
-        return pref_let      
-        '''if depth != 0:
-            for x in possmove:
-                bob = self.search(depth-1, x, a, b, [p*-1+3, [p2, pits, p1]])
                 print(x)
-                print(bob)'''
-        
-        '''if p == self.initplayer:
-            val = -50
-            for x in possmove:
-                res = self.search(depth-1, x, a, b, state = [p*-1 + 3, [p2, pits, p1]])
-                val = max(val,res[1])
-                a = max(a, val)
-                
-                if a > b:
-                    break
-            return val
-        else:
-            val = 50
-            for x in possmove:
-                res = self.search(depth-1, x, a, b, state = [p*-1 + 3, [p2, pits, p1]])
-                print(a, b)
-                val = min(val, res[0])
-                b = min(b, val)
-                if b < a:
-                    break
+                new_p, res = self.__move(x,  [p, [p2, pits, p1]])
+                pot_a, pot_b = res[0], res[2]
+                if pot_a >= a:
+                    if pot_b <= b:
+                        a, b = pot_a, pot_b
+                        s_a, s_b = self.search(depth-1, x, a, b, [new_p, res])
+                        #a = max(s_a, a)
+                        #b = min(s_b, b)
+                        
+                        print(a, b)
+                        print(x, s_a, s_b)
+                        pref_let = x
+                    else:
+                        continue
+                else:
+                    continue
+            print()
+            return [a,b]
 
-            return val'''
+    
+        #return pref_let
         
     def clear(self):
         self.searchedpos = []
@@ -389,6 +378,5 @@ if __name__ == "__main__":
     #mancala.move('C')
     mancala.move('C')
     mancala.move('F')
-    mancala.search(1)
+    mancala.search(3)
     #cProfile.run('mancala.search(8)')
-
