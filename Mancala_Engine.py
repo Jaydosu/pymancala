@@ -256,6 +256,12 @@ class game:
         try and maximise the score of the player
         
         if a child has less current score, then the search will be stopped
+        
+        if depth is 0, then the function returns whether the move fits the
+        heuristics
+        
+        if the depth is not 0, then the search continues. pref move will 
+        change and move up the tree until the search is complete
         """
         if state == None:
             p = self.player
@@ -267,21 +273,28 @@ class game:
             p2, pits, p1 = state[1]
 
         # a will always be maximising score and b will be the minimising score
-        if a == None and b == None:
+        if a == None:
             if p == 2:
                 a = p2
-                b = p1
             else: 
                 a = p1
-                b = p2
+        
+        if b == None:
+            b = 50
 
         if depth == 0:
-            if p == self.initplayer:
-                result = self.__move(let, [p*-1+3, [p2, pits, p1]])[1]
-                return [result[0], result[2]]
+            #if depth = 0, just calculate, a, b and return
+            new_p, res = self.__move(let, [p, [p2, pits, p1]])
+            pot_a = res[-2*p+4]
+            pot_b = res[2*p-2]
+            
+            if pot_a >= a:
+                a = pot_a
+                if pot_b <= b:
+                    b = pot_b
+            return [a,b]
         
         if depth != 0:
-            
             possmove = ['a','b','c','d','e','f','g','h','i','j','k','l'][0+pp:6+pp]
             
             for x in possmove:
@@ -318,39 +331,20 @@ class game:
                     b = min(b, potential b)
                     
             """
+                        
             for x in possmove:
-                self.__move(x, [p, [p2, pits, p1]])
-                self.search(depth-1, x, a, b, [p*-1+3, [p2,pits,p1]])
-                
-                
-                
-        '''if depth != 0:
-            for x in possmove:
-                bob = self.search(depth-1, x, a, b, [p*-1+3, [p2, pits, p1]])
-                print(x)
-                print(bob)'''
-        
-        '''if p == self.initplayer:
-            val = -50
-            for x in possmove:
-                res = self.search(depth-1, x, a, b, state = [p*-1 + 3, [p2, pits, p1]])
-                val = max(val,res[1])
-                a = max(a, val)
-                
-                if a > b:
+                pot_a, pot_b = self.search(depth-1, x, a, b, [p, [p2, pits, p1]])
+                if pot_a >= a:
+                    if pot_b <= b:
+                        a, b = pot_a, pot_b
+                    else:
+                        break
+                else:
                     break
-            return val
-        else:
-            val = 50
-            for x in possmove:
-                res = self.search(depth-1, x, a, b, state = [p*-1 + 3, [p2, pits, p1]])
-                print(a, b)
-                val = min(val, res[0])
-                b = min(b, val)
-                if b < a:
-                    break
+        return [a,b]
 
-            return val'''
+                        
+        #return pref_let
         
     def clear(self):
         self.searchedpos = []
@@ -364,5 +358,5 @@ if __name__ == "__main__":
     mancala.move('C')
     mancala.move('F')
     mancala.search(1)
-    #cProfile.run('mancala.search(8)')
+    cProfile.run('mancala.search(8)')
 
