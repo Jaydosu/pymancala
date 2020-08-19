@@ -4,7 +4,7 @@ class game:
         self.board = [0, [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], 0]
         #       [N, [A, B, C, D, E, F, G, H, I, J, K, L], M]
         self.initplayer = player
-        self.player = player
+        self.player = 1
         self.moveorder = []
         self.searchedpos = []
         self.movestring = ""
@@ -21,16 +21,15 @@ class game:
         """
         if board == True:
             board = self.board
-            ptm = self.player - self.initplayer
-            if ptm != 0:
+            if self.player != self.initplayer:
                 p = 'Your Opponent'
-            elif ptm == 0:
+            if self.player == self.initplayer:
                 p = 'You'
         else:
             player = board[0]
-            if player == 2:
+            if player != self.initplayer:
                 p = 'Your Opponent'
-            if player == 1:
+            if player == self.initplayer:
                 p = 'You'
             board = board[1]
             
@@ -52,13 +51,11 @@ class game:
                    "g": 6,"h": 7,"i": 8,"j": 9,"k": 10,"l": 11}
         
         letter = letter.lower()
-        
         if letter in letters:
             idx = letters[letter]
         else:
             print("Input not recognised")
             return None
-        
         if self.player == 1 and idx in [6, 7, 8, 9, 10, 11]:
             print("Wrong Player")
             return None
@@ -67,63 +64,13 @@ class game:
             return None
         
         return [letter, idx]
+    
     def moveadd(self, letter):
         self.movestring += letter
         
     def get_ms(self):
         print(self.movestring)
-                
-    def _mmove(self, letter):
-        letters_up = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
-        letters_lo = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"]
-        
-        if letter in letters_up:
-            idx = letters_up.index(letter)
-        elif letter in letters_lo:
-            idx = letters_lo.index(letter)
-            
-        pits = self.board[1]
-        
-        if self.player == 1:
-            combiboard = pits[0:6] + [self.board[2]] + pits[6:12]
-         
-        if self.player == 2:
-            combiboard = pits[6:12] + [self.board[0]] + pits[0:6]
-            idx -= 6
-            
-        count = combiboard[idx]
-        lastpit = (idx + count)%13
-        combiboard[idx] = 0
-        
-        i = 0
-        j = 0
-        
-        while j < (count):
-            combiboard[idx + i + 1] += 1
-            
-            i+=1
-            if idx + i + 1 == 13:
-                i = -1*idx - 1
-            j+=1
-        
-        if lastpit in range(6):
-            if combiboard[lastpit] == 1:
-                combiboard[6] += 1
-                combiboard[6] += combiboard[12-lastpit]
-                combiboard[lastpit] = 0
-                combiboard[12-lastpit] = 0
-                
-        if self.player == 1:
-            self.board = [self.board[0], combiboard[0:6] + combiboard[7:13], combiboard[6]]
-        
-        if self.player == 2:
-            self.board = [combiboard[6], combiboard[7:13] + combiboard[0:6], self.board[2]]
-            
-        if lastpit != 6:
-            self.playerswap()
-            
-        self.moveadd(letter)
-        
+                        
     def __move(self, let, state):
         player = state[0]
         board = state[1]
@@ -133,21 +80,16 @@ class game:
         letters = {"a": 0,"b": 1,"c": 2,"d": 3,"e": 4,"f": 5,
                    "g": 6,"h": 7,"i": 8,"j": 9,"k": 10,"l": 11}
         
-        idx = letters[let]
-        
-        if player == 1:
-            combiboard = pits[0:6] + [board[2]] + pits[6:12]
-         
-        if player == 2:
-            combiboard = pits[6:12] + [board[0]] + pits[0:6]
-            idx -= 6
-            
+        idx = letters[let + player - 1]
+
+        combiboard = pits[6*player-6:6*player] + [board[-2*player+4]] \
+                    +pits[-6*player+12:-6*player+18]
+                                
         count = combiboard[idx]
         lastpit = (idx + count)%13
         combiboard[idx] = 0
         
-        i = 0
-        j = 0
+        i, j = 0, 0
         
         while j < (count):
             combiboard[idx + i + 1] += 1
@@ -158,11 +100,9 @@ class game:
             j+=1
         
         if lastpit in range(6):
-            if combiboard[lastpit] == 1:
-                combiboard[6] += 1
-                combiboard[6] += combiboard[12-lastpit]
-                combiboard[lastpit] = 0
-                combiboard[12-lastpit] = 0
+            if combiboard[lastpit] == 1 and combiboard[12-lastpit] != 0:
+                combiboard[6] += 1 + combiboard[12-lastpit]
+                combiboard[lastpit], combiboard[12-lastpit] = 0, 0
             
         if player == 1:
             board = [board[0], combiboard[0:6] + combiboard[7:13], combiboard[6]]
@@ -171,10 +111,7 @@ class game:
             board = [combiboard[6], combiboard[7:13] + combiboard[0:6], board[2]]
             
         if lastpit != 6:
-            if player == 1:
-                player = 2
-            elif player == 2:
-                player = 1
+            player = -1*player + 3
     
         return [player, board]
         
@@ -194,6 +131,7 @@ class game:
             
         count = combiboard[idx]
         lastpit = (idx + count)%13
+        print(lastpit)
         combiboard[idx] = 0
         
         i = 0
@@ -206,19 +144,24 @@ class game:
             if idx + i + 1 == 13:
                 i = -1*idx - 1
             j+=1
-        
+            
         if lastpit in range(6):
-            if combiboard[lastpit] == 1:
-                combiboard[6] += 1
-                combiboard[6] += combiboard[12-lastpit]
-                combiboard[lastpit] = 0
-                combiboard[12-lastpit] = 0
+            print(combiboard[12-lastpit])
+            if combiboard[lastpit] == 1 and combiboard[12-lastpit] != 0:
+                combiboard[6] += 1 + combiboard[12-lastpit]
+                combiboard[lastpit], combiboard[12-lastpit] = 0, 0
                 
+        # end of game
+        if combiboard[7*self.player-7:7*self.player-1] == [0,0,0,0,0,0]:
+            self.board[2*self.player-2]  += sum(combiboard[-7*self.player+14:-7*self.player+20])
+            combiboard[-7*self.player+14:-7*self.player+20] = [0,0,0,0,0,0]
+        
         if self.player == 1:
             self.board = [self.board[0], combiboard[0:6] + combiboard[7:13], combiboard[6]]
         
         if self.player == 2:
             self.board = [combiboard[6], combiboard[7:13] + combiboard[0:6], self.board[2]]
+            
             
         if lastpit != 6:
             self.playerswap()
@@ -243,140 +186,97 @@ class game:
             
         # return score
         return [board[0], board[2]]
-        
-    def search(self, depth, let = None, a = None, b = None, state = None):
-        """
-        just focus on generating the moves
-        state = player, board
-
-        essentially for ab search you are trying to maximise scores for both 
-        players
-        
-        depending on which player the search is evaluating on, the search will
-        try and maximise the score of the player
-        
-        if a child has less current score, then the search will be stopped
-        
-        if depth is 0, then the function returns whether the move fits the
-        heuristics
-        
-        if the depth is not 0, then the search continues. pref move will 
-        change and move up the tree until the search is complete
-        """
+                
+    def search2(self, depth, let = None, a = None, b = None, state = None):
         if state == None:
             p = self.player
             pp = (self.player-1)*6
             p2, pits, p1 = self.board
+            top_level = True
         else:
             p = state[0]
             pp = (state[0] - 1)* 6
             p2, pits, p1 = state[1]
+            top_level = False
 
         # a will always be maximising score and b will be the minimising score
-        if a == None:
+        if a == None and b == None:
             if p == 2:
                 a = p2
+                b = p1
             else: 
                 a = p1
-        
-        if b == None:
-            b = 50
-
-        if depth == 0:
-            #if depth = 0, just calculate, a, b and return
-            new_p, res = self.__move(let, [p, [p2, pits, p1]])
-            pot_a = res[-2*p+4]
-            pot_b = res[2*p-2]
-            
-            if pot_a >= a:
-                a = pot_a
-                if pot_b <= b:
-                    b = pot_b
-            return [a,b]
-        
-        if depth != 0:
-            possmove = ['a','b','c','d','e','f','g','h','i','j','k','l'][0+pp:6+pp]
-            
-            for x in possmove:
-                j = possmove.index(x)
-                if pits[j + pp] == 0:
-                    possmove.pop(j)
-            """
-            
-            THIS SECTION IS WHERE WE IMPLEMENT THE ab SEARCH
-            
-            a = maximising score
-            b = minimising score
-            
-            same goal: maximise your score while minimising opponent score
-            
-            the best move you can make is the one that maximises your score
-            while minimising your opponent score
-            
-            naturally, while playing mancala, you look for moves which allow 
-            you to make more than 1 move
-            
-            if a or b > 24: stop search i.e. auto win
-                if a > 24, no need to search further as line is winning
-                if b > 24, no need to search further as line is losing
+                b = p2
                 
-            overall, trying to find max(a) and min(b)
-            
-            order of steps:
-                
-                do move
-                    the results are compared to a and b
-                    
-                    a = max(a, potential a)
-                    b = min(b, potential b)
-                    
-            """
-                        
-            '''for x in possmove:
-                pot_a, pot_b = self.search(depth-1, x, a, b, [p, [p2, pits, p1]])
-                if pot_a >= a:
-                    if pot_b <= b:
-                        a, b = pot_a, pot_b
-                    else:
-                        break
-                else:
-                    break
-            return [a,b]'''
+        possmove = ['a','b','c','d','e','f','g','h','i','j','k','l'][0+pp:6+pp]
+        
+        if top_level: 
+            prev_p = None
             pref_let = None
-            for x in possmove:
-                print(x)
-                new_p, res = self.__move(x,  [p, [p2, pits, p1]])
-                pot_a, pot_b = res[0], res[2]
-                if pot_a >= a:
-                    if pot_b <= b:
-                        a, b = pot_a, pot_b
-                        s_a, s_b = self.search(depth-1, x, a, b, [new_p, res])
-                        #a = max(s_a, a)
-                        #b = min(s_b, b)
-                        
-                        print(a, b)
-                        print(x, s_a, s_b)
-                        pref_let = x
-                    else:
-                        continue
-                else:
-                    continue
-            print()
-            return [a,b]
+        else: 
+            prev_p = p
+        # need knowledge of what the previous player is...
+        for x in possmove:
+            if pits[possmove.index(x)] != 0:
+                if prev_p != None and prev_p != p:
+                    a, b = b, a
+                
+                new_p, res = self.__move(x, [p, [p2, pits, p1]])
+                pot_a, pot_b = res[-2*p+4], res[2*p-2]
+                #print(depth*'\t||', x, a, b, pot_a, pot_b)
+                #comparing to THIS PLAYERS a and b
+                prev_p = p
+                if pot_a >= (a-2) and pot_b <= (b+2) and a <= 25 and b <= 25:
+                    a, b = pot_a, pot_b
 
-    
-        #return pref_let
-        
+                    if depth == 1:
+                        continue
+
+                    prev_p, a, b = self.search2(depth-1, x,\
+                                            (new_p*-1+2)*a + (new_p-1)*b
+                                           ,(new_p-1)*a + (new_p*-1+2)*b,
+                                           [new_p, res])
+                    if top_level:
+                        pref_let = x
+        if top_level:
+            print(pref_let)
+        return prev_p, a, b
+
+
+            
     def clear(self):
         self.searchedpos = []
+        
+    def search(self, depth, p, alpha, beta):
+        #this time just return alpha or beta
+        pass
 
-import cProfile  
+def dogame():
+    garry = int(input('Player (1 or 2):'))
+    b = game(int(garry))
+    
+    if garry == 2:
+        b.move(input('Enter Opponents first move: '))
+        
+        while b.player != garry:
+            b.move(input('Enter Opponents first move: '))
+    b.display()
+    b.search2(5)
+    mov = input('Your move: ')
+    
+    while mov != 'end':
+        b.move(mov)
+        if b.player != garry:
+            opmov = input('Opponent move: ')
+            b.move(opmov)
+        b.search2(4)
+        mov = input('Your move: ')
+    
+    
+
 if __name__ == "__main__":
-       
+
+    #dogame()
     mancala = game(1)
-    #ancala.move('K')
-    #mancala.move('C')
-    mancala.move('C')
-    mancala.move('F')
-    mancala.search(3)
-    #cProfile.run('mancala.search(8)')
+    mancala.move('c')
+
