@@ -1,4 +1,3 @@
-import time
 class game:
     def __init__(self, player):
         self.board = [0, [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], 0]
@@ -44,6 +43,7 @@ class game:
         print("\tA  B  C  D  E  F")
         print('\n' + 'Player to move: ' + p)
         print('-------------------------------------------------------------')
+
     def check_legal(self, letter):
         letters = {"a": 0,"b": 1,"c": 2,"d": 3,"e": 4,"f": 5,
                    "g": 6,"h": 7,"i": 8,"j": 9,"k": 10,"l": 11}
@@ -70,15 +70,14 @@ class game:
         print(self.movestring)
 
     def __move(self, let, state):
-        player = state[0]
-        board = state[1]
+        player, board = state
 
         pits = board[1]
 
         letters = {"a": 0,"b": 1,"c": 2,"d": 3,"e": 4,"f": 5,
                    "g": 6,"h": 7,"i": 8,"j": 9,"k": 10,"l": 11}
 
-        idx = letters[let + player - 1]
+        idx = letters[let]
 
         if player == 1:
             combiboard = pits[0:6] + [self.board[2]] + pits[6:12]
@@ -101,7 +100,7 @@ class game:
                 i = -1*idx - 1
             j+=1
 
-        if lastpit in range(6) and combiboard[lastpit] == 1 and combiboard[12-lastpit] != 0:
+        if lastpit in {0,1,2,3,4,5} and combiboard[lastpit] == 1 and combiboard[12-lastpit] != 0:
             combiboard[6] += 1 + combiboard[12-lastpit]
             combiboard[lastpit], combiboard[12-lastpit] = 0, 0
 
@@ -148,7 +147,7 @@ class game:
                 i = -1*idx - 1
             j+=1
 
-        if lastpit in range(6) and combiboard[lastpit] == 1 and combiboard[12-lastpit] != 0:
+        if lastpit in {0,1,2,3,4,5} and combiboard[lastpit] == 1 and combiboard[12-lastpit] != 0:
             combiboard[6] += 1 + combiboard[12-lastpit]
             combiboard[lastpit], combiboard[12-lastpit] = 0, 0
 
@@ -171,22 +170,30 @@ class game:
             self.display()
 
         self.moveadd(letter)
+        
+    def eval(self, state):
+        player, board = state
+        pits = board[1] 
+        
+        # The evaluation function should provide an objective view of game state
+        # It should factor in each players score but also the potential score
+        
+        # Game state should be an estimate of how many moves are left in the game 
+        
 
     def search(self, depth, p, alpha, beta):
         #this time just return alpha or beta
         pass
 
-def v1():
-    mancala = game(1)
-    mancala.move('c')
 
-def v2():
-    mancala = game(1)
-    mancala.move('c')
-
-import cProfile
-import timeit
 if __name__ == "__main__":
-
+    import time
+    import cProfile
+    import timeit
     #dogame()
     #mancala = game(1)
+    mancala = game(1)
+    c = min(timeit.Timer(v1).repeat(repeat = 100, number = 100000))
+    d = min(timeit.Timer(v2).repeat(repeat = 100, number = 100000))
+
+    print(c,d)
